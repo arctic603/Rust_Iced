@@ -1,0 +1,13 @@
+[package]
+name = "rust_iced_demo"
+version = "0.1.0"
+edition = "2021"
+description = "A demo app built with Rust and the Iced GUI framework"
+authors = ["arctic603"]
+
+[dependencies]
+iced = { version = "0.13", features = ["canvas", "image", "svg", "advanced"] }
+
+[[bin]]
+name = "rust_iced_demo"
+path = "src/main.rs"
