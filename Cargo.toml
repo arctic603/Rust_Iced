@@ -6,7 +6,7 @@ description = "A demo app built with Rust and the Iced GUI framework"
 authors = ["arctic603"]
 
 [dependencies]
-iced = { version = "0.13", features = ["canvas", "image", "svg", "advanced"] }
+iced = { version = "0.14", features = ["canvas", "image", "svg", "advanced"] }
 
 [[bin]]
 name = "rust_iced_demo"

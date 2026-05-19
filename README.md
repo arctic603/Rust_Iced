@@ -37,7 +37,7 @@ Rust_Iced/
 
 | 库 | 版本 | 说明 |
 |---|---|---|
-| [iced](https://crates.io/crates/iced) | 0.13 | Rust GUI 框架 |
+| [iced](https://crates.io/crates/iced) | 0.14 | Rust GUI 框架 |
 
 ## 截图
 
