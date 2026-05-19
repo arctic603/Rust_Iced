@@ -1,30 +1,41 @@
 //! 动画效果页面 —— 简单的动画演示
+//!
+//! 本页面演示基于状态驱动的动画效果：
+//! - 位置控制：通过滑块改变方块的水平位置
+//! - 大小控制：通过滑块改变方块的尺寸
+//! - 颜色控制：通过滑块改变方块的 HSL 色相
+//! - 脉冲动画：开启后自动循环改变大小，模拟呼吸灯效果
+//!
+//! 注意：Iced 本身没有内置补间动画库，复杂动画需要配合 Task 定时器实现
 
 use iced::widget::{button, column, container, row, slider, Space};
 use iced::{Alignment, Color, Element, Fill};
 
 use crate::Message;
 
+/// 动画页面状态
 #[derive(Debug, Default)]
 pub struct AnimationPage {
-    pub animate_enabled: bool,
-    pub box_position: f32,
-    pub box_size: f32,
-    pub box_color_phase: f32,
-    pub pulse_phase: f32,
+    pub animate_enabled: bool,   // 动画开关
+    pub box_position: f32,       // 方块水平位置（0~100，映射到 padding）
+    pub box_size: f32,           // 方块基础大小（20~100）
+    pub box_color_phase: f32,    // 色相相位（0~360，对应 HSL 色相）
+    pub pulse_phase: f32,        // 脉冲相位（0~1，用于自动动画循环）
 }
 
+/// 动画页面消息
 #[derive(Debug, Clone)]
 pub enum AnimationMessage {
-    ToggleAnimate,
-    PositionChanged(f32),
-    SizeChanged(f32),
-    ColorPhaseChanged(f32),
-    PulseTick,
-    Reset,
+    ToggleAnimate,            // 开启/关闭自动脉冲动画
+    PositionChanged(f32),     // 位置滑块变化
+    SizeChanged(f32),         // 大小滑块变化
+    ColorPhaseChanged(f32),   // 色相滑块变化
+    PulseTick,                // 脉冲步进（需外部定时触发）
+    Reset,                    // 重置所有参数
 }
 
 impl AnimationPage {
+    /// 更新动画页面状态
     pub fn update(&mut self, msg: AnimationMessage) {
         match msg {
             AnimationMessage::ToggleAnimate => self.animate_enabled = !self.animate_enabled,
@@ -32,11 +43,13 @@ impl AnimationPage {
             AnimationMessage::SizeChanged(v) => self.box_size = v,
             AnimationMessage::ColorPhaseChanged(v) => self.box_color_phase = v,
             AnimationMessage::PulseTick => {
+                // 只有在动画开启时才更新脉冲相位
                 if self.animate_enabled {
                     self.pulse_phase = (self.pulse_phase + 0.05) % 1.0;
                 }
             }
             AnimationMessage::Reset => {
+                // 一键重置所有参数到默认值
                 self.box_position = 0.0;
                 self.box_size = 50.0;
                 self.box_color_phase = 0.0;
@@ -46,6 +59,8 @@ impl AnimationPage {
         }
     }
 
+    /// 构建动画页面视图
+    /// 上方是动画舞台，下方是参数控制面板
     pub fn view(&self) -> Element<'_, Message> {
         let stage = container(
             container(Space::new())
@@ -147,6 +162,8 @@ impl AnimationPage {
     }
 }
 
+/// HSL 转 RGB 颜色
+/// h: 色相 0~360, s: 饱和度 0~1, l: 亮度 0~1
 fn hsl_color(h: f32, s: f32, l: f32) -> Color {
     let c = (1.0 - (2.0 * l - 1.0).abs()) * s;
     let h_prime = h / 60.0;
@@ -170,6 +187,7 @@ fn hsl_color(h: f32, s: f32, l: f32) -> Color {
     Color::from_rgb(r + m, g + m, b + m)
 }
 
+/// 辅助函数：带浅灰背景和圆角的卡片容器
 fn card(content: Element<'_, Message>) -> Element<'_, Message> {
     container(content)
         .width(Fill)

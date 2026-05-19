@@ -1,4 +1,11 @@
 //! Canvas 绘图页面 —— 自定义绘制
+//!
+//! 本页面演示 Iced Canvas 的高级用法：
+//! - Cache：缓存几何图形，避免每帧重新计算
+//! - Frame：绘制路径（矩形、圆形、直线）
+//! - 坐标变换：translate、rotate
+//! - 自定义样式：fill 填充、stroke 描边
+//! - 文字绘制：在 Canvas 上输出文本
 
 use iced::widget::canvas::{self, Cache, Canvas, Frame, Geometry, Path, Stroke, Text};
 use iced::widget::{column, container, row, slider};
@@ -6,11 +13,12 @@ use iced::{Color, Element, Fill, Length, Point, Rectangle, Renderer, Theme, Vect
 
 use crate::Message;
 
+/// Canvas 绘图页面状态
 #[derive(Debug)]
 pub struct CanvasPage {
-    pub cache: Cache,
-    pub circle_radius: f32,
-    pub rotation: f32,
+    pub cache: Cache,         // 绘制缓存，用于性能优化
+    pub circle_radius: f32,   // 圆形半径（10~120）
+    pub rotation: f32,        // 旋转角度（0~360 度）
 }
 
 impl Default for CanvasPage {
@@ -23,14 +31,17 @@ impl Default for CanvasPage {
     }
 }
 
+/// Canvas 页面消息
 #[derive(Debug, Clone)]
 pub enum CanvasMessage {
-    RadiusChanged(f32),
-    RotationChanged(f32),
-    ClearCache,
+    RadiusChanged(f32),    // 圆形半径滑块变化
+    RotationChanged(f32),  // 旋转角度滑块变化
+    ClearCache,            // 手动清除绘制缓存
 }
 
 impl CanvasPage {
+    /// 更新 Canvas 页面状态
+    /// 当半径或旋转角度变化时，需要清除缓存以触发重绘
     pub fn update(&mut self, msg: CanvasMessage) {
         match msg {
             CanvasMessage::RadiusChanged(v) => {
@@ -45,6 +56,8 @@ impl CanvasPage {
         }
     }
 
+    /// 构建 Canvas 页面视图
+    /// 上方是 Canvas 绘图区，下方是参数控制滑块
     pub fn view(&self) -> Element<'_, Message> {
         let canvas_widget = Canvas::new(self)
             .width(Fill)
@@ -157,6 +170,8 @@ impl canvas::Program<Message> for CanvasPage {
     }
 }
 
+/// 在 Canvas 上绘制网格背景
+/// step: 网格间距（像素）
 fn draw_grid(frame: &mut Frame, bounds: &Rectangle) {
     let grid_color = Color::from_rgb(0.9, 0.9, 0.92);
     let step = 30.0;

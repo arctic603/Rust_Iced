@@ -1,35 +1,44 @@
 //! 滑块与进度页面 —— 各种进度控件
+//!
+//! 本页面演示 Iced 中的滑块和进度条控件：
+//! - slider：可拖拽的数值滑块
+//! - progress_bar：只读进度显示条
+//! - RGB 调色板：三个滑块联动控制颜色预览
+//! - 模拟下载：按钮触发 + 定时器驱动的进度条动画
 
 use iced::widget::{button, column, container, progress_bar, row, slider, Space};
 use iced::{Alignment, Color, Element, Fill};
 
 use crate::Message;
 
+/// 滑块页面状态
 #[derive(Debug, Default)]
 pub struct SliderPage {
-    pub basic: f32,
-    pub red: f32,
-    pub green: f32,
-    pub blue: f32,
-    pub volume: f32,
-    pub is_playing: bool,
-    pub download_progress: f32,
-    pub is_downloading: bool,
+    pub basic: f32,              // 基础滑块值（0~100）
+    pub red: f32,                // RGB 红色分量（0~255）
+    pub green: f32,              // RGB 绿色分量（0~255）
+    pub blue: f32,               // RGB 蓝色分量（0~255）
+    pub volume: f32,             // 音量滑块值（0~100）
+    pub is_playing: bool,        // 播放/暂停状态
+    pub download_progress: f32,  // 下载进度（0~100）
+    pub is_downloading: bool,    // 是否正在下载中
 }
 
+/// 滑块页面消息
 #[derive(Debug, Clone)]
 pub enum SliderMessage {
-    BasicChanged(f32),
-    RedChanged(f32),
-    GreenChanged(f32),
-    BlueChanged(f32),
-    VolumeChanged(f32),
-    TogglePlay,
-    Download,
-    DownloadTick,
+    BasicChanged(f32),   // 基础滑块值变化
+    RedChanged(f32),     // 红色分量变化
+    GreenChanged(f32),   // 绿色分量变化
+    BlueChanged(f32),    // 蓝色分量变化
+    VolumeChanged(f32),  // 音量变化
+    TogglePlay,          // 切换播放/暂停
+    Download,            // 开始下载
+    DownloadTick,        // 下载进度步进（需外部定时触发）
 }
 
 impl SliderPage {
+    /// 更新滑块页面状态
     pub fn update(&mut self, msg: SliderMessage) {
         match msg {
             SliderMessage::BasicChanged(v) => self.basic = v,
@@ -39,10 +48,12 @@ impl SliderPage {
             SliderMessage::VolumeChanged(v) => self.volume = v,
             SliderMessage::TogglePlay => self.is_playing = !self.is_playing,
             SliderMessage::Download => {
+                // 点击开始下载时，重置进度并标记为下载中
                 self.is_downloading = true;
                 self.download_progress = 0.0;
             }
             SliderMessage::DownloadTick => {
+                // 模拟下载进度步进，每次 +2%，到达 100% 后停止
                 if self.is_downloading {
                     self.download_progress += 2.0;
                     if self.download_progress >= 100.0 {
@@ -54,6 +65,7 @@ impl SliderPage {
         }
     }
 
+    /// 构建滑块页面视图
     pub fn view(&self) -> Element<'_, Message> {
         let basic_label = iced::widget::text(format!("Basic Slider: {:.0}%", self.basic))
             .size(16)

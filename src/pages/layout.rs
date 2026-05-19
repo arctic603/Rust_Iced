@@ -1,18 +1,27 @@
 //! 布局演示页面 —— 各种布局方式
+//!
+//! 本页面演示 Iced 中 5 种核心布局容器：
+//! - Row：水平排列子元素
+//! - Column：垂直排列子元素
+//! - Center：将单个子元素居中
+//! - Stack：层叠排列（支持重叠）
+//! - Space：弹性空白占位
 
 use iced::widget::{button, center, column, container, row, stack, Space};
 use iced::{Alignment, Color, Element, Fill};
 
 use crate::Message;
 
+/// 布局页面状态
 #[derive(Debug, Default)]
 pub struct LayoutPage {
-    pub selected_demo: usize,
+    pub selected_demo: usize,  // 当前选中的布局演示索引
 }
 
+/// 布局页面消息
 #[derive(Debug, Clone)]
 pub enum LayoutMessage {
-    SelectDemo(usize),
+    SelectDemo(usize),  // 切换布局演示标签
 }
 
 impl LayoutPage {
@@ -22,9 +31,12 @@ impl LayoutPage {
         }
     }
 
+    /// 构建布局页面视图
+    /// 顶部是一排切换标签按钮，下方是选中的布局演示内容
     pub fn view(&self) -> Element<'_, Message> {
         let demo_names = ["Row", "Column", "Center", "Stack", "Space"];
 
+        // 顶部分页标签按钮
         let demo_tabs = row(
             demo_names
                 .iter()
@@ -39,6 +51,7 @@ impl LayoutPage {
         )
         .spacing(8);
 
+        // 根据选中的标签索引，展示对应的布局演示
         let selected_content: Element<'static, Message> = match self.selected_demo {
             0 => row_demo(),
             1 => column_demo(),
@@ -54,6 +67,7 @@ impl LayoutPage {
     }
 }
 
+/// Row 水平布局演示：子元素从左到右排列
 fn row_demo() -> Element<'static, Message> {
     let title = iced::widget::text("Row Horizontal").size(14).color(Color::from_rgb(0.4, 0.4, 0.5));
 
@@ -75,6 +89,7 @@ fn row_demo() -> Element<'static, Message> {
     card(column![title, row1, row2].spacing(10).into())
 }
 
+/// Column 垂直布局演示：子元素从上到下排列
 fn column_demo() -> Element<'static, Message> {
     let title = iced::widget::text("Column Vertical").size(14).color(Color::from_rgb(0.4, 0.4, 0.5));
 
@@ -98,6 +113,7 @@ fn column_demo() -> Element<'static, Message> {
     card(column![title, side_by_side].spacing(10).into())
 }
 
+/// Center 居中布局演示：将内容在容器中水平和垂直居中
 fn center_demo() -> Element<'static, Message> {
     let title = iced::widget::text("Center").size(14).color(Color::from_rgb(0.4, 0.4, 0.5));
 
@@ -130,6 +146,7 @@ fn center_demo() -> Element<'static, Message> {
     card(column![title, centered].spacing(10).into())
 }
 
+/// Stack 层叠布局演示：子元素重叠放置，后覆盖前
 fn stack_demo() -> Element<'static, Message> {
     let title = iced::widget::text("Stack").size(14).color(Color::from_rgb(0.4, 0.4, 0.5));
 
@@ -158,6 +175,7 @@ fn stack_demo() -> Element<'static, Message> {
     card(column![title, layered].spacing(10).into())
 }
 
+/// Space 弹性占位演示：利用 Space::new() 自动填充剩余空间
 fn space_demo() -> Element<'static, Message> {
     let title = iced::widget::text("Space Fill").size(14).color(Color::from_rgb(0.4, 0.4, 0.5));
 
@@ -171,6 +189,7 @@ fn space_demo() -> Element<'static, Message> {
     card(column![title, spaced].spacing(10).into())
 }
 
+/// 辅助函数：创建一个带文字标签的彩色方块，用于布局演示
 fn color_box(color: Color, label: &'static str, size: u16) -> Element<'static, Message> {
     container(iced::widget::text(label).size(12).color(Color::WHITE))
         .width(iced::Length::Fixed(size as f32))
@@ -189,6 +208,7 @@ fn color_box(color: Color, label: &'static str, size: u16) -> Element<'static, M
         .into()
 }
 
+/// 辅助函数：带浅灰背景和圆角的卡片容器
 fn card(content: Element<'static, Message>) -> Element<'static, Message> {
     container(content)
         .width(Fill)

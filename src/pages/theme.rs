@@ -1,17 +1,25 @@
 //! 主题样式页面 —— 颜色、字体、圆角等样式演示
+//!
+//! 本页面演示 Iced 中常见的样式定制方式：
+//! - 按钮预设样式（Primary / Secondary）
+//! - 自定义按钮背景色
+//! - Container 背景色、边框、圆角
+//! - 不同大小和颜色的文本样式
 
 use iced::widget::{button, column, container, row};
 use iced::{Color, Element, Fill, Theme};
 
 use crate::Message;
 
+/// 主题样式页面状态
 #[derive(Debug, Default)]
 pub struct ThemePage {
-    pub custom_color_r: f32,
-    pub custom_color_g: f32,
-    pub custom_color_b: f32,
+    pub custom_color_r: f32,  // 自定义颜色 R 分量（0~255）
+    pub custom_color_g: f32,  // 自定义颜色 G 分量（0~255）
+    pub custom_color_b: f32,  // 自定义颜色 B 分量（0~255）
 }
 
+/// 主题样式页面消息
 #[derive(Debug, Clone)]
 pub enum ThemeMessage {
     RedChanged(f32),
@@ -20,6 +28,7 @@ pub enum ThemeMessage {
 }
 
 impl ThemePage {
+    /// 更新主题页面状态
     pub fn update(&mut self, msg: ThemeMessage) {
         match msg {
             ThemeMessage::RedChanged(v) => self.custom_color_r = v,
@@ -28,6 +37,7 @@ impl ThemePage {
         }
     }
 
+    /// 构建主题样式页面视图
     pub fn view(&self) -> Element<'_, Message> {
         let preset_title = iced::widget::text("Button Styles")
             .size(16)
@@ -129,6 +139,7 @@ impl ThemePage {
     }
 }
 
+/// 辅助函数：创建一个带圆角和文字的彩色方块，用于展示不同圆角效果
 fn rounded_box(label: &'static str, radius: f32, color: Color) -> Element<'static, Message> {
     container(
         iced::widget::text(label)
@@ -152,6 +163,7 @@ fn rounded_box(label: &'static str, radius: f32, color: Color) -> Element<'stati
     .into()
 }
 
+/// 辅助函数：带浅灰背景和圆角的卡片容器
 fn card(content: Element<'_, Message>) -> Element<'_, Message> {
     container(content)
         .width(Fill)

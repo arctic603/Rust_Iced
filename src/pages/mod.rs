@@ -1,7 +1,13 @@
 //! 页面模块 —— 所有子页面 Demo 的入口
+//!
+//! 本模块负责：
+//! - 定义 Page 路由枚举，管理所有可用页面
+//! - 提供 sidebar() 函数渲染左侧导航栏
+//! - 提供 content_wrapper() 函数统一包装页面内容（标题 + 滚动）
 
 pub mod animation;
 pub mod canvas;
+pub mod chart;
 pub mod counter;
 pub mod layout;
 pub mod slider;
@@ -23,6 +29,7 @@ pub enum Page {
     Sliders,
     Layout,
     Canvas,
+    Chart,
     Animation,
     Theme,
 }
@@ -37,6 +44,7 @@ impl Page {
             Page::Sliders => "Sliders",
             Page::Layout => "Layout",
             Page::Canvas => "Canvas",
+            Page::Chart => "Chart",
             Page::Animation => "Animation",
             Page::Theme => "Theme",
         }
@@ -51,19 +59,21 @@ impl Page {
             Page::Sliders => "=",
             Page::Layout => "[]",
             Page::Canvas => "@",
+            Page::Chart => "/",
             Page::Animation => "~",
             Page::Theme => "O",
         }
     }
 
     /// 所有页面列表
-    pub const ALL: [Page; 8] = [
+    pub const ALL: [Page; 9] = [
         Page::Welcome,
         Page::Counter,
         Page::TextInputs,
         Page::Sliders,
         Page::Layout,
         Page::Canvas,
+        Page::Chart,
         Page::Animation,
         Page::Theme,
     ];

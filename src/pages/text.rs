@@ -1,36 +1,45 @@
 //! 文本输入页面 —— 各种输入控件演示
+//!
+//! 本页面演示 Iced 中常用的文本与选择类控件：
+//! - text_input：单行文本输入框
+//! - checkbox：复选框
+//! - toggler：开关切换器
+//! - 实时预览：左侧输入，右侧即时展示当前表单内容
 
 use iced::widget::{button, column, container, row, Space};
 use iced::{Color, Element, Fill};
 
 use crate::Message;
 
+/// 文本输入页面状态
 #[derive(Debug, Default)]
 pub struct TextPage {
-    pub name: String,
-    pub email: String,
-    pub password: String,
-    pub bio: String,
-    pub show_password: bool,
-    pub agree_terms: bool,
-    pub subscribe: bool,
-    pub age: String,
+    pub name: String,           // 姓名
+    pub email: String,          // 邮箱
+    pub password: String,       // 密码
+    pub bio: String,            // 简介
+    pub show_password: bool,    // 是否明文显示密码
+    pub agree_terms: bool,      // 是否同意条款
+    pub subscribe: bool,        // 是否订阅
+    pub age: String,            // 年龄（字符串形式，便于输入控制）
 }
 
+/// 文本输入页面消息
 #[derive(Debug, Clone)]
 pub enum TextMessage {
     NameChanged(String),
     EmailChanged(String),
     PasswordChanged(String),
     BioChanged(String),
-    TogglePassword(bool),
-    ToggleTerms(bool),
-    ToggleSubscribe(bool),
-    AgeChanged(String),
-    Submit,
+    TogglePassword(bool),   // 切换密码显示/隐藏
+    ToggleTerms(bool),      // 切换同意条款
+    ToggleSubscribe(bool),  // 切换订阅开关
+    AgeChanged(String),     // 年龄输入（带数字校验）
+    Submit,                 // 提交按钮（示例中无实际操作）
 }
 
 impl TextPage {
+    /// 处理文本输入页面的消息，更新对应字段
     pub fn update(&mut self, msg: TextMessage) {
         match msg {
             TextMessage::NameChanged(v) => self.name = v,
@@ -41,6 +50,7 @@ impl TextPage {
             TextMessage::ToggleTerms(v) => self.agree_terms = v,
             TextMessage::ToggleSubscribe(v) => self.subscribe = v,
             TextMessage::AgeChanged(v) => {
+                // 年龄输入只接受数字字符，过滤掉非法输入
                 if v.chars().all(|c| c.is_ascii_digit()) {
                     self.age = v;
                 }
@@ -49,6 +59,8 @@ impl TextPage {
         }
     }
 
+    /// 构建文本输入页面视图
+    /// 左侧为表单输入区，右侧为实时预览区
     pub fn view(&self) -> Element<'_, Message> {
         let form_title = iced::widget::text("User Registration Form")
             .size(18)

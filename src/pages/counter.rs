@@ -1,33 +1,42 @@
 //! 计数器页面 —— 多种计数器变体
+//!
+//! 本页面演示 Iced 中按钮和状态交互的基本模式：
+//! - 基础计数器：+ / - / Reset
+//! - 步进计数器：可调整每次增减的步长
+//! - 边界计数器：数值被限制在 [-10, 10] 区间内
+//! - 历史记录：追踪基础计数器的最近操作记录
 
 use iced::widget::{button, column, container, row, Space};
 use iced::{Alignment, Color, Element, Fill};
 
 use crate::Message;
 
+/// 计数器页面状态
 #[derive(Debug, Default)]
 pub struct CounterPage {
-    pub basic: i32,
-    pub step: i32,
-    pub step_size: i32,
-    pub bounded: i32,
-    pub history: Vec<i32>,
+    pub basic: i32,       // 基础计数器值
+    pub step: i32,        // 步进计数器值
+    pub step_size: i32,   // 当前步长（默认 1）
+    pub bounded: i32,     // 边界计数器值（限制在 -10~10）
+    pub history: Vec<i32>, // 基础计数器的历史记录
 }
 
+/// 计数器页面消息
 #[derive(Debug, Clone)]
 pub enum CounterMessage {
-    BasicInc,
-    BasicDec,
-    BasicReset,
-    StepInc,
-    StepDec,
-    StepSizeChanged(i32),
-    BoundedInc,
-    BoundedDec,
-    BoundedReset,
+    BasicInc,             // 基础计数器 +1
+    BasicDec,             // 基础计数器 -1
+    BasicReset,           // 基础计数器归零并清空历史
+    StepInc,              // 步进计数器 +step_size
+    StepDec,              // 步进计数器 -step_size
+    StepSizeChanged(i32), // 修改步长
+    BoundedInc,           // 边界计数器 +1（受限制）
+    BoundedDec,           // 边界计数器 -1（受限制）
+    BoundedReset,         // 边界计数器归零
 }
 
 impl CounterPage {
+    /// 更新计数器页面状态
     pub fn update(&mut self, msg: CounterMessage) {
         match msg {
             CounterMessage::BasicInc => {
@@ -45,12 +54,14 @@ impl CounterPage {
             CounterMessage::StepInc => self.step += self.step_size,
             CounterMessage::StepDec => self.step -= self.step_size,
             CounterMessage::StepSizeChanged(v) => self.step_size = v,
+            // 使用 min/max 确保数值不越界
             CounterMessage::BoundedInc => self.bounded = (self.bounded + 1).min(10),
             CounterMessage::BoundedDec => self.bounded = (self.bounded - 1).max(-10),
             CounterMessage::BoundedReset => self.bounded = 0,
         }
     }
 
+    /// 构建计数器页面视图
     pub fn view(&self) -> Element<'_, Message> {
         let basic_label = iced::widget::text("Basic Counter")
             .size(16)
@@ -151,12 +162,14 @@ impl CounterPage {
     }
 }
 
+/// 辅助函数：创建统一风格的 + / - 小按钮
 fn btn<'a>(label: &'a str) -> button::Button<'a, Message> {
     button(iced::widget::text(label).size(18).align_x(iced::widget::text::Alignment::Center))
         .width(50)
         .padding(8)
 }
 
+/// 辅助函数：带浅灰背景和圆角的卡片容器
 fn card<'a>(content: Element<'a, Message>) -> Element<'a, Message> {
     container(content)
         .width(Fill)
