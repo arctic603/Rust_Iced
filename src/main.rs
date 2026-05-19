@@ -1,64 +1,76 @@
-// 隐藏 Windows 控制台窗口 —— 仅 GUI 程序不弹 CMD
+// 隐藏 Windows 控制台窗口
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
-use iced::{
-    font::Font,
-    widget::{
-        button, column, container, progress_bar, row, rule, slider, space, text,
-        text_input, toggler,
-    },
-    Alignment, Color, Element, Fill, Length, Task, Theme,
+use iced::widget::{column, container, row, rule, Space};
+use iced::{Element, Fill, Task, Theme};
+
+mod pages;
+
+use pages::{
+    animation::{AnimationMessage, AnimationPage},
+    canvas::{CanvasMessage, CanvasPage},
+    counter::{CounterMessage, CounterPage},
+    layout::{LayoutMessage, LayoutPage},
+    slider::{SliderMessage, SliderPage},
+    text::{TextMessage, TextPage},
+    theme::{ThemeMessage, ThemePage},
+    Page,
 };
 
-/// Windows 系统上常见的中文字体，fontdb 会自动从 C:\Windows\Fonts 加载
-const CN_FONT: Font = Font::with_name("Microsoft YaHei");
+// ─── 程序入口 ──────────────────────────────────────────────────────────────
 
-/// 程序入口 —— iced 0.14 函数式 API
 pub fn main() -> iced::Result {
-    iced::application(IcedDemo::default, IcedDemo::update, IcedDemo::view)
+    iced::application(App::default, App::update, App::view)
         .title("Rust Iced Demo")
-        .theme(IcedDemo::theme)
-        .window_size((800.0, 600.0))
+        .theme(App::theme)
+        .window_size((1000.0, 700.0))
         .run()
 }
 
-// ─── 应用状态 ──────────────────────────────────────────────────────────────────
+// ─── 应用状态 ──────────────────────────────────────────────────────────────
 
 #[derive(Debug, Default)]
-struct IcedDemo {
-    /// 计数器值
-    count: i32,
-    /// 滑块值 0.0 ~ 100.0
-    slider_value: f32,
-    /// 文本输入框内容
-    input_text: String,
-    /// 是否开启深色主题
+struct App {
+    current_page: Page,
     dark_mode: bool,
+    counter: CounterPage,
+    text: TextPage,
+    slider: SliderPage,
+    layout: LayoutPage,
+    canvas: CanvasPage,
+    animation: AnimationPage,
+    theme: ThemePage,
 }
 
-// ─── 消息类型 ──────────────────────────────────────────────────────────────────
+// ─── 消息类型 ──────────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone)]
-enum Message {
-    Increment,
-    Decrement,
-    Reset,
-    SliderChanged(f32),
-    InputChanged(String),
-    ToggleTheme(bool),
+pub enum Message {
+    Navigate(Page),
+    ToggleDarkMode(bool),
+    Counter(CounterMessage),
+    Text(TextMessage),
+    Slider(SliderMessage),
+    Layout(LayoutMessage),
+    Canvas(CanvasMessage),
+    Animation(AnimationMessage),
+    Theme(ThemeMessage),
 }
 
-// ─── 核心逻辑 ──────────────────────────────────────────────────────────────────
+// ─── 核心逻辑 ──────────────────────────────────────────────────────────────
 
-impl IcedDemo {
+impl App {
     fn update(&mut self, message: Message) -> Task<Message> {
         match message {
-            Message::Increment => self.count += 1,
-            Message::Decrement => self.count -= 1,
-            Message::Reset => self.count = 0,
-            Message::SliderChanged(v) => self.slider_value = v,
-            Message::InputChanged(s) => self.input_text = s,
-            Message::ToggleTheme(v) => self.dark_mode = v,
+            Message::Navigate(page) => self.current_page = page,
+            Message::ToggleDarkMode(v) => self.dark_mode = v,
+            Message::Counter(msg) => self.counter.update(msg),
+            Message::Text(msg) => self.text.update(msg),
+            Message::Slider(msg) => self.slider.update(msg),
+            Message::Layout(msg) => self.layout.update(msg),
+            Message::Canvas(msg) => self.canvas.update(msg),
+            Message::Animation(msg) => self.animation.update(msg),
+            Message::Theme(msg) => self.theme.update(msg),
         }
         Task::none()
     }
@@ -72,153 +84,89 @@ impl IcedDemo {
     }
 
     fn view(&self) -> Element<'_, Message> {
-        // ── 标题区域 ─────────────────────────────────────────────────────────
-        let title = text("Rust Iced Demo")
-            .font(CN_FONT)
-            .size(32)
-            .color(if self.dark_mode {
-                Color::from_rgb(0.6, 0.85, 1.0)
-            } else {
-                Color::from_rgb(0.1, 0.3, 0.65)
-            });
+        let sidebar = pages::sidebar(self.current_page, self.dark_mode);
 
-        let subtitle = text("一个用 Rust + Iced 0.14 构建的 GUI 演示程序")
-            .font(CN_FONT)
-            .size(15)
-            .color(Color::from_rgb(0.5, 0.5, 0.5));
-
-        // ── 主题切换 ─────────────────────────────────────────────────────────
-        let theme_toggle = row![
-            text("深色模式").font(CN_FONT).size(14),
-            space::horizontal(),
-            toggler(self.dark_mode)
-                .label("Dark Mode")
-                .on_toggle(Message::ToggleTheme),
-        ]
-        .align_y(Alignment::Center)
-        .spacing(8);
-
-        // ── 计数器面板 ───────────────────────────────────────────────────────
-        let counter_label = text("计数器").font(CN_FONT).size(18);
-
-        let count_color = if self.count > 0 {
-            Color::from_rgb(0.1, 0.7, 0.3)
-        } else if self.count < 0 {
-            Color::from_rgb(0.9, 0.2, 0.2)
-        } else {
-            Color::from_rgb(0.45, 0.45, 0.45)
+        let content = match self.current_page {
+            Page::Welcome => welcome_view(self.dark_mode),
+            Page::Counter => pages::content_wrapper("Counter", self.dark_mode, self.counter.view()),
+            Page::TextInputs => pages::content_wrapper("Text Inputs", self.dark_mode, self.text.view()),
+            Page::Sliders => pages::content_wrapper("Sliders & Progress", self.dark_mode, self.slider.view()),
+            Page::Layout => pages::content_wrapper("Layout", self.dark_mode, self.layout.view()),
+            Page::Canvas => pages::content_wrapper("Canvas Drawing", self.dark_mode, self.canvas.view()),
+            Page::Animation => pages::content_wrapper("Animation", self.dark_mode, self.animation.view()),
+            Page::Theme => pages::content_wrapper("Theme & Style", self.dark_mode, self.theme.view()),
         };
 
-        let count_display = text(self.count.to_string())
-            .size(56)
-            .color(count_color);
-
-        let btn_dec = button(
-            text("－")
-                .size(22)
-                .align_x(iced::widget::text::Alignment::Center),
-        )
-        .width(60)
-        .padding(10)
-        .on_press(Message::Decrement);
-
-        let btn_inc = button(
-            text("＋")
-                .size(22)
-                .align_x(iced::widget::text::Alignment::Center),
-        )
-        .width(60)
-        .padding(10)
-        .on_press(Message::Increment);
-
-        let btn_reset = button(
-            text("重置")
-                .font(CN_FONT)
-                .size(15)
-                .align_x(iced::widget::text::Alignment::Center),
-        )
-        .width(90)
-        .padding([8, 16])
-        .on_press(Message::Reset);
-
-        let counter_btns = row![btn_dec, count_display, btn_inc]
-            .align_y(Alignment::Center)
-            .spacing(20);
-
-        let counter_panel = column![counter_label, counter_btns, btn_reset]
-            .spacing(12)
-            .align_x(Alignment::Center);
-
-        // ── 滑块面板 ─────────────────────────────────────────────────────────
-        let slider_label =
-            text(format!("进度滑块: {:.0}%", self.slider_value))
-                .font(CN_FONT)
-                .size(18);
-
-        let slider_widget =
-            slider(0.0..=100.0, self.slider_value, Message::SliderChanged)
-                .width(Fill)
-                .step(1.0);
-
-        let progress = progress_bar(0.0..=100.0, self.slider_value);
-
-        let slider_panel = column![slider_label, slider_widget, progress].spacing(10);
-
-        // ── 文本输入面板 ─────────────────────────────────────────────────────
-        let input_label = text("文本输入").font(CN_FONT).size(18);
-
-        let input = text_input("在此输入文字…", &self.input_text)
-            .font(CN_FONT)
-            .on_input(Message::InputChanged)
-            .padding(10)
-            .size(15);
-
-        let echo = if self.input_text.is_empty() {
-            text("（等待输入…）")
-                .font(CN_FONT)
-                .size(14)
-                .color(Color::from_rgb(0.6, 0.6, 0.6))
-        } else {
-            text(format!("你输入了：{}", self.input_text))
-                .font(CN_FONT)
-                .size(14)
-                .color(Color::from_rgb(0.15, 0.65, 0.4))
-        };
-
-        let input_panel = column![input_label, input, echo].spacing(10);
-
-        // ── 状态信息栏 ───────────────────────────────────────────────────────
-        let status = text(format!(
-            "Rust Iced Demo v{} · iced 0.14 · 主题: {}",
-            env!("CARGO_PKG_VERSION"),
-            if self.dark_mode { "深色" } else { "浅色" }
-        ))
-        .font(CN_FONT)
-        .size(12)
-        .color(Color::from_rgb(0.5, 0.5, 0.5));
-
-        // ── 整体布局 ─────────────────────────────────────────────────────────
-        let header = row![title, space::horizontal(), theme_toggle]
-            .align_y(Alignment::Center);
-
-        let content = column![
-            header,
-            subtitle,
-            rule::horizontal(2),
-            counter_panel,
-            rule::horizontal(1),
-            slider_panel,
-            rule::horizontal(1),
-            input_panel,
-            rule::horizontal(1),
-            status,
-        ]
-        .spacing(20)
-        .padding(30);
-
-        container(content)
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .into()
+        row![sidebar, content].into()
     }
+}
+
+// ─── 欢迎页面 ──────────────────────────────────────────────────────────────
+
+fn welcome_view(dark: bool) -> Element<'static, Message> {
+    let title = iced::widget::text("Welcome to Rust Iced Demo")
+        .size(32)
+        .color(if dark {
+            iced::Color::from_rgb(0.75, 0.85, 1.0)
+        } else {
+            iced::Color::from_rgb(0.1, 0.25, 0.55)
+        });
+
+    let subtitle = iced::widget::text("A Rust + Iced 0.14 GUI learning project")
+        .size(15)
+        .color(iced::Color::from_rgb(0.5, 0.5, 0.55));
+
+    let divider = rule::horizontal(2);
+
+    let intro = iced::widget::text("The left sidebar contains multiple independent UI demo pages, each showcasing different Iced features:")
+        .size(14)
+        .color(iced::Color::from_rgb(0.4, 0.4, 0.45));
+
+    let features = vec![
+        ("Counter", "Basic counter, step counter, bounded counter and history"),
+        ("Text Inputs", "Form inputs, password field, checkbox, live preview"),
+        ("Sliders", "Slider controls, RGB color picker, volume control, simulated download"),
+        ("Layout", "Row, Column, Center, Stack and more layout patterns"),
+        ("Canvas", "Custom drawing, geometric shapes, grid, rotation"),
+        ("Animation", "State-driven animation, position/size/color changes"),
+        ("Theme", "Button styles, text styles, container radius, color preview"),
+    ];
+
+    let mut feature_list = column![].spacing(10);
+    for (name, desc) in features {
+        feature_list = feature_list.push(
+            row![
+                container(iced::widget::text("*").size(10).color(iced::Color::from_rgb(0.3, 0.6, 0.9)))
+                    .width(iced::Length::Fixed(24.0))
+                    .align_x(iced::Alignment::Center),
+                column![
+                    iced::widget::text(name).size(14).color(iced::Color::from_rgb(0.2, 0.4, 0.7)),
+                    iced::widget::text(desc).size(12).color(iced::Color::from_rgb(0.5, 0.5, 0.55)),
+                ]
+                .spacing(2),
+            ]
+            .align_y(iced::Alignment::Center),
+        );
+    }
+
+    let footer = iced::widget::text("Version 0.1.0 · Iced 0.14 · Rust 1.90+")
+        .size(11)
+        .color(iced::Color::from_rgb(0.55, 0.55, 0.6));
+
+    let body = column![
+        title,
+        subtitle,
+        divider,
+        intro,
+        feature_list,
+        Space::new(),
+        footer,
+    ]
+    .spacing(16)
+    .padding(30);
+
+    container(body)
+        .width(Fill)
+        .height(Fill)
+        .into()
 }

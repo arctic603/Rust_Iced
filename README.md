@@ -1,20 +1,28 @@
-# 🦀 Rust Iced Demo
+# Rust Iced Demo
 
-一个基于 [Iced](https://github.com/iced-rs/iced) GUI 框架的 Rust 桌面应用演示程序。
+A multi-page GUI demo application built with [Iced](https://github.com/iced-rs/iced) 0.14 and Rust.
 
-## 功能展示
+## Features
 
-- **计数器**：点击 ＋ / － 按钮增减计数，支持重置，负数红色、正数绿色高亮
-- **进度滑块**：拖动滑块实时更新进度条（0–100%）
-- **文本输入**：实时回显输入内容
-- **深色/浅色主题**：右上角 toggler 一键切换
+This project demonstrates various Iced UI components across 8 independent pages:
 
-## 环境要求
+| Page | Description |
+|---|---|
+| **Welcome** | Overview and feature list |
+| **Counter** | Basic counter, step counter, bounded counter (-10~10), history tracking |
+| **Text Inputs** | Form inputs, password field, checkbox, toggler, live preview |
+| **Sliders** | Slider controls, RGB color picker, volume control, simulated download |
+| **Layout** | Row, Column, Center, Stack, Space layout patterns |
+| **Canvas** | Custom drawing with Cache, geometric shapes, grid, rotation |
+| **Animation** | State-driven animation with position/size/color changes |
+| **Theme** | Button styles, text styles, container radius, color preview |
 
-- Rust 1.75+（推荐 stable）
+## Requirements
+
+- Rust 1.75+ (stable recommended)
 - Windows / macOS / Linux
 
-## 快速运行
+## Quick Start
 
 ```bash
 git clone https://github.com/arctic603/Rust_Iced.git
@@ -22,29 +30,39 @@ cd Rust_Iced
 cargo run --release
 ```
 
-> 首次编译需要下载 iced 依赖，约需 1–3 分钟，请耐心等待。
+> First build downloads Iced dependencies, may take 2-5 minutes.
 
-## 项目结构
+## Project Structure
 
 ```
 Rust_Iced/
-├── Cargo.toml        # 依赖配置
+├── Cargo.toml
+├── README.md
 └── src/
-    └── main.rs       # 应用逻辑（单文件 Demo）
+    ├── main.rs              # Application entry, routing, theme
+    └── pages/
+        ├── mod.rs           # Page enum, sidebar navigation, content wrapper
+        ├── counter.rs       # Counter demo page
+        ├── text.rs          # Text input demo page
+        ├── slider.rs        # Slider & progress demo page
+        ├── layout.rs        # Layout patterns demo page
+        ├── canvas.rs        # Canvas drawing demo page
+        ├── animation.rs     # Animation demo page
+        └── theme.rs         # Theme & style demo page
 ```
 
-## 依赖
+## Dependencies
 
-| 库 | 版本 | 说明 |
+| Crate | Version | Description |
 |---|---|---|
-| [iced](https://crates.io/crates/iced) | 0.14 | Rust GUI 框架 |
+| [iced](https://crates.io/crates/iced) | 0.14 | Cross-platform GUI framework |
 
-## 截图
+## Architecture
 
-> 运行 `cargo run` 后即可看到如下界面：
-> - 顶部：标题 + 主题切换开关
-> - 中部：计数器、进度滑块
-> - 底部：文本输入回显
+- **Page routing**: `Page` enum with 8 variants, switched via left sidebar
+- **State management**: Each page has its own state struct and message enum
+- **Navigation**: Left sidebar with active page highlighting
+- **Theming**: Light/Dark mode support via `Theme` toggle
 
 ## License
 
