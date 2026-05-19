@@ -18,9 +18,7 @@ This project demonstrates various Iced UI components across 8 independent pages:
 | **Theme** | Button styles, text styles, container radius, color preview |
 
 ## Requirements
-
 - Rust 1.75+ (stable recommended)
-- Windows / macOS / Linux
 
 ## Quick Start
 
@@ -64,6 +62,3 @@ Rust_Iced/
 - **Navigation**: Left sidebar with active page highlighting
 - **Theming**: Light/Dark mode support via `Theme` toggle
 
-## License
-
-MIT
